@@ -183,27 +183,18 @@ Elasticsearch also provides the flexibility to change the effective weights o
 
 Consider the following query results for “carpet grass 10 feet”:
 
-| position | product_title | score | relevance |
-| --- | --- | --- | --- |
-| 1 | Scotts 10 lb. Turf Builder EZ Bermuda Grass Seed | 28.6455 |  |
-| 2 | Roberts 2.125 in. Carpet Cutter Replacement Blade, For Roberts 10-154,
-  10-906, 10-621GT and Many Other Carpet Cutters, (100-Pack | 26.90916 |  |
-| 3 | IMAGE 32 oz. Ready-to-Spray Herbicide for St. Augustine Grass and
-  Centipede Grass | 26.74438 |  |
-| 4 | GREENLINE Pink Blend Artificial Grass Synthetic Lawn Turf Indoor/Outdoor
-  Carpet, Sold by 12 ft. W x Customer Length | 26.30933 |  |
-| 5 | GREENLINE Slate Grey Artificial Grass Synthetic Lawn Turf Indoor/Outdoor
-  Carpet, Sold by 12 ft. W x Customer Length | 26.30933 |  |
-| 6 | GREENLINE Caribbean Blue Artificial Grass Synthetic Lawn Turf
-  Indoor/Outdoor Carpet, Sold by 6 ft. W x Customer Length | 26.30933 |  |
-| 7 | GREENLINE Caribbean Blue Artificial Grass Synthetic Lawn Turf
-  Indoor/Outdoor Carpet, Sold by 12 ft. W x Customer Length | 26.30933 |  |
-| 8 | GREENLINE Slate Grey Artificial Grass Synthetic Lawn Turf Indoor/Outdoor
-  Carpet, Sold by 6 ft. W x Customer Length | 26.30933 |  |
-| 9 | GREENLINE Jade 50 7.5 ft. x 10 ft. Artificial Synthetic Lawn Turf Grass
-  Carpet for Outdoor Landscape | 26.30129 | 2.33 |
-| 10 | GREENLINE Jade 50 15 ft. x Your Length Artificial Synthetic Lawn Turf
-  Grass Carpet for Outdoor Landscape | 25.71607 |  |
+| position | product_title                                                                                                                      | score    | relevance |
+|----------|------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|
+| 1        | Scotts 10 lb. Turf Builder EZ Bermuda Grass Seed                                                                                   | 28.6455  |           |
+| 2        | Roberts 2.125 in. Carpet Cutter Replacement Blade, For Roberts 10-154,   10-906, 10-621GT and Many Other Carpet Cutters, (100-Pack | 26.90916 |           |
+| 3        | IMAGE 32 oz. Ready-to-Spray Herbicide for St. Augustine Grass and   Centipede Grass                                                | 26.74438 |           |
+| 4        | GREENLINE Pink Blend Artificial Grass Synthetic Lawn Turf Indoor/Outdoor   Carpet, Sold by 12 ft. W x Customer Length              | 26.30933 |           |
+| 5        | GREENLINE Slate Grey Artificial Grass Synthetic Lawn Turf Indoor/Outdoor   Carpet, Sold by 12 ft. W x Customer Length              | 26.30933 |           |
+| 6        | GREENLINE Caribbean Blue Artificial Grass Synthetic Lawn Turf   Indoor/Outdoor Carpet, Sold by 6 ft. W x Customer Length           | 26.30933 |           |
+| 7        | GREENLINE Caribbean Blue Artificial Grass Synthetic Lawn Turf   Indoor/Outdoor Carpet, Sold by 12 ft. W x Customer Length          | 26.30933 |           |
+| 8        | GREENLINE Slate Grey Artificial Grass Synthetic Lawn Turf Indoor/Outdoor   Carpet, Sold by 6 ft. W x Customer Length               | 26.30933 |           |
+| 9        | GREENLINE Jade 50 7.5 ft. x 10 ft. Artificial Synthetic Lawn Turf Grass   Carpet for Outdoor Landscape                             | 26.30129 | 2.33      |
+| 10       | GREENLINE Jade 50 15 ft. x Your Length Artificial Synthetic Lawn Turf   Grass Carpet for Outdoor Landscape                         | 25.71607 |           |
 
 The grass seed ends up in our top position because it has matches to both “grass” and “10” in both its title and its description. Only the result in position 9 has any relevance score associated with it for this particular query. What we want is to get that product in position 9 to rank higher, as well as potentially pull some other relevant products into the top 10 results.
 
@@ -233,28 +224,18 @@ boosts = {"title_boost": 8,
 
 Let’s rerun our query for  “carpet grass 10 feet” and see the difference in results:
 
-| position | product_title | score | relevance |
-| --- | --- | --- | --- |
-| 1 | GREENLINE Jade 50 7.5 ft. x 10 ft. Artificial Synthetic Lawn Turf Grass
-  Carpet for Outdoor Landscape | 118.972 | 2.33 |
-| 2 | GREENLINE Classic 54 Fescue 5 ft. x 10 ft. Artificial Synthetic Lawn Turf
-  Grass Carpet for Outdoor Landscape | 115.1039 | 2.67 |
-| 3 | GREENLINE Classic 54 Fescue 7.5 ft. x 10 ft. Artificial Synthetic Lawn
-  Turf Grass Carpet for Outdoor Landscape | 115.1039 | 3 |
-| 4 | GREENLINE Pet/Sport 60 5 ft. x 10 ft. Artificial Synthetic Lawn Turf
-  Grass Carpet for Outdoor Landscape | 112.7533 |  |
-| 5 | GREENLINE Classic Pro 82 Spring 7.5 ft. x 10 ft. Artificial Synthetic
-  Lawn Turf Grass Carpet for Outdoor Landscape | 112.5257 | 2 |
-| 6 | GREENLINE Classic Premium 65 Spring 5 ft. x 10 ft. Artificial Synthetic
-  Lawn Turf Grass Carpet for Outdoor Landscape | 112.2699 | 2 |
-| 7 | GREENLINE Classic Premium 65 Fescue 7.5 ft. x 10 ft. Artificial Synthetic
-  Lawn Turf Grass Carpet for Outdoor Landscape | 112.2699 | 1.33 |
-| 8 | GREENLINE Classic Premium 65 Spring 7.5 ft. x 10 ft. Artificial Synthetic
-  Lawn Turf Grass Carpet for Outdoor Landscape | 112.2699 |  |
-| 9 | Turf Evolutions Deluxe Indoor Outdoor Landscape Artificial Synthetic Lawn
-  Turf Grass Carpet,5 ft. x 10 ft. | 109.6246 | 3 |
-| 10 | Turf Evolutions Luxurious Indoor Outdoor Landscape Artificial Synthetic
-  Lawn Turf Grass Carpet,5 ft. x 10 ft. | 109.2967 | 3 |
+| position | product_title                                                                                                            | score    | relevance |
+|----------|--------------------------------------------------------------------------------------------------------------------------|----------|-----------|
+| 1        | GREENLINE Jade 50 7.5 ft. x 10 ft. Artificial Synthetic Lawn Turf Grass   Carpet for Outdoor Landscape                   | 118.972  | 2.33      |
+| 2        | GREENLINE Classic 54 Fescue 5 ft. x 10 ft. Artificial Synthetic Lawn Turf   Grass Carpet for Outdoor Landscape           | 115.1039 | 2.67      |
+| 3        | GREENLINE Classic 54 Fescue 7.5 ft. x 10 ft. Artificial Synthetic Lawn   Turf Grass Carpet for Outdoor Landscape         | 115.1039 | 3         |
+| 4        | GREENLINE Pet/Sport 60 5 ft. x 10 ft. Artificial Synthetic Lawn Turf   Grass Carpet for Outdoor Landscape                | 112.7533 |           |
+| 5        | GREENLINE Classic Pro 82 Spring 7.5 ft. x 10 ft. Artificial Synthetic   Lawn Turf Grass Carpet for Outdoor Landscape     | 112.5257 | 2         |
+| 6        | GREENLINE Classic Premium 65 Spring 5 ft. x 10 ft. Artificial Synthetic   Lawn Turf Grass Carpet for Outdoor Landscape   | 112.2699 | 2         |
+| 7        | GREENLINE Classic Premium 65 Fescue 7.5 ft. x 10 ft. Artificial Synthetic   Lawn Turf Grass Carpet for Outdoor Landscape | 112.2699 | 1.33      |
+| 8        | GREENLINE Classic Premium 65 Spring 7.5 ft. x 10 ft. Artificial Synthetic   Lawn Turf Grass Carpet for Outdoor Landscape | 112.2699 |           |
+| 9        | Turf Evolutions Deluxe Indoor Outdoor Landscape Artificial Synthetic Lawn   Turf Grass Carpet,5 ft. x 10 ft.             | 109.6246 | 3         |
+| 10       | Turf Evolutions Luxurious Indoor Outdoor Landscape Artificial Synthetic   Lawn Turf Grass Carpet,5 ft. x 10 ft.          | 109.2967 | 3         |
 
 As you can see, our original relevant result now sits in the first position, and we were able to pull 7 additional relevant results into the top 10.
 
@@ -274,4 +255,6 @@ In this initial post we’ve gained some valuable insights into our product sear
 
 With this foundation, we’ll dive deeper into more sophisticated approaches like vector embeddings and hybrid search methods in the subsequent posts.
 
-If you want to dive deeper into the code, the notebook for all of the work above can be found here:
+If you want to dive deeper into the code, the notebooks for all of the work above can be found here:
+* [0-eda.ipynb](https://github.com/billyhines/search-relevance/blob/main/0-eda.ipynb)
+* [1-text-search.ipynb](https://github.com/billyhines/search-relevance/blob/main/1-text-search.ipynb)
