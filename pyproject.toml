@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "home-depot-product-search-relevance"
+version = "0.1.0"
+description = ""
+authors = ["Billy Hines <bhines239@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.2.1"
+jupyterlab = "^4.1.5"
+matplotlib = "^3.8.3"
+elasticsearch = "^8.13.0"
+tqdm = "^4.66.2"
+pytrec-eval-terrier = "^0.5.6"
+sentence-transformers = "^2.6.1"
+black = "^24.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
