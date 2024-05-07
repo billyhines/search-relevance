@@ -241,11 +241,11 @@ As you can see, our original relevant result now sits in the first position, and
 
 The following table shows our aggregate metrics over the entire set of queries before and after tuning:
 
-| run_name | run_time | MRR | MAP | NDCG |
+| run_name | MRR | MAP | NDCG | run_time (s) |
 | --- | --- | --- | --- | --- |
-| textsearch | 90.8 | 0.27 | 0.12 | 0.18 |
-| textsearch_boosted | 110 | 0.32 | 0.16 | 0.24 |
-| % change | 21% | 21% | 34% | 29% |
+| textsearch | 0.26 | 0.11 | 0.17 | 178.50 |
+| textsearch_boosted | 0.32 | 0.15 | 0.22 | 207.41 |
+| % change | 22% | 33% | 28% | 16% |
 
 One thing that we’ll also track is the time it takes to run all of the queries as we add more complexity to our queries.
 
