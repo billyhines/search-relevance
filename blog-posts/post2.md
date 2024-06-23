@@ -9,16 +9,7 @@ A vector based search solution gives us a few advantages over a text based solut
 
 The world of text embedding models has been rapidly evolving over the past few years. In a previous post I discussed creating text embeddings using Google’s Universal Sentence Encoder. These days (4/17/2024 for reference), it seems like a new text embedding model smashes the benchmarks every other day.
 
-In this post, we’ll show how to embed text to create vector representation of both our queries and products. We’ll then show how to run a vector based query in Elasticsearch and compare the results to our previous text based results. Finally, we’ll combine the two methods to generate a hybrid of the results, hopefully giving us the best of both worlds!
-
-- **Vector Embeddings**
-    - Introduce the concept of vector embeddings and their role in representing text data.
-    - Explain the advantages of vector embeddings for search tasks (e.g., capturing semantic similarities, handling misspellings, etc.).
-    - Discuss the specific embedding model you'll be using (e.g., pre-trained models like BERT, sentence-transformers, etc.).
-- **Generating Embeddings**
-    - Walk through the process of generating vector embeddings for your product data (titles, descriptions, attributes).
-    - Share any preprocessing steps, batching techniques, or optimizations you employed.
-    - Discuss how you indexed the embeddings in Elasticsearch (or any other vector store you're using).
+In this post, we’ll show how to embed text to create vector representation of both our queries and products. We’ll then show how to run a vector based query in Elasticsearch and compare the results to our previous text based results.
 
 # Vector Embeddings
 
@@ -28,7 +19,7 @@ We’re going to first start off with an open source pretrained embedding model.
 
 The next step is decide *what* to embed. It’s easy on the query side: for each query we’ll embed the text “Represent this sentence for searching relevant passages: “ and then the query text itself.
 
-On the product side of things, we have some more options. We could embed titles, descriptions, attributes or any combination of these three. To start with, we’ll embed a concatenation of all three.
+On the product side of things, we have some more options. We could embed titles, descriptions, attributes or any combination of these three. We’ll do both of these: we’ll embed a concatenation of all three, as well as each of the fields individually.
 
 We can create these embeddings relatively simply using the `sentence-transformers` package as we show below for embedding the queries:
 
@@ -76,7 +67,19 @@ mapping = {
                 },
             }
         },
-        "product_vector": {
+        "product_title_vector": {
+            "type": "dense_vector",
+            "dims": 768
+        },
+        "product_description_vector": {
+            "type": "dense_vector",
+            "dims": 768
+        },
+        "product_attributes_string_vector": {
+            "type": "dense_vector",
+            "dims": 768
+        },
+        "product_text_string_vector": {
             "type": "dense_vector",
             "dims": 768
         },
@@ -120,7 +123,49 @@ query_body = {
 }
 ```
 
+If we want to, we can also query across multiple embedding fields as shown below:
+
+```python
+query_body = {
+    "size": num_results,
+    "query": {
+        "bool": {
+            "should": [
+                {
+                    "knn": {
+                        "field": "product_title_vector",
+                        "query_vector": search_vector,
+                        "num_candidates": 50,
+                    },
+                    "knn": {
+                        "field": "product_description_vector",
+                        "query_vector": search_vector,
+                        "num_candidates": 50,
+                    },
+                    "knn": {
+                        "field": "product_attributes_string_vector",
+                        "query_vector": search_vector,
+                        "num_candidates": 50,
+                    },
+                }
+            ]
+        }
+    }
+}
+```
+
 To run this query, Elasticsearch first uses an Approximate Nearest Neighbors algorithm to search across the indexed vectors and pull the “num_candidates” number of products that should be closest to the “search_vector”. Once those initial candidates are returned, the similarity between vectors is calculated and the documents are ranked according to these similarity values.
+
+In the multifield case, Elasticsearch follows the same process across each of the fields and then combines the match scores for a final ranking score.
+
+## Running Multifield Vector Searches
+We can use the same type of tuning process that we used while tuning the text searches: we’ll use the boosting functionality from Elasticsearch which allow us to “boost” the score of vector matches from a particular field.
+
+We’ll perform a grid-search over potential boost values of different fields. With each set of boost values, we’ll run through all of the queries, score them using our evaluation metrics, and the collect our results at the end.
+
+Surprisingly, after iterating over a wide range of values, we find that the multifield vector searches underperform the single product embedding across our evaluation metrics.
+
+# Vector Search Results
 
 Let’s take a look at some sample results. First consider the results for the text query of "real flame gel fuel”:
 
@@ -154,85 +199,33 @@ Many of the results in this list have the words “gel fuel”, but are actually
 
 One interesting observation about this specific query is the inclusion of what appears to be a brand name, "Real Flame." In this dataset, we seem to have primarily "Real Flame" gel fuels, which has likely contributed to the relevant results in the vector based search. However, it's worth noting that a text embedding approach may not necessarily capture brand name matches as effectively as a text-based search. What if we could combine the best of both worlds?
 
-## Running Hybrid Searches
-
-With Elasticsearch’s kNN query, we can simply add the kNN matching clause into the list of text matches that we had originally used for our text search. One thing to note in the example above is that the text match scores are orders of magnitude larger than the vector match scores. In order to give the vector match a fighting chance in the final rankings, we will surely need to boost their scores. In a similar way we did when searching for the boost values in the text scores, we will iterate over boost values for the vector scores in search of the highest ranking evaluation metrics.
-
-We can create our new hybrid search queries in the following manner:
-
-```python
-query_body = {
-    "size": num_results,
-    "query": {
-        "bool": {
-            "should": [
-                {
-                    "match": {
-                        "product_title": {
-                            "query": search_text,
-                        }
-                    }
-                },
-                {
-                    "match": {
-                        "product_description": {
-                            "query": search_text,
-                        }
-                    }
-                },
-                {
-                    "nested": {
-                        "path": "product_attributes",
-                        "query": {
-                            "match": {
-                                "product_attributes.name_value": {
-                                    "query": search_text,
-                                }
-                            }
-                        }
-                    }
-                },
-								{
-                    "knn": {
-                        "field": "product_vector",
-                        "query_vector": search_vector,
-                        "num_candidates": 50,
-                    }
-            ]
-        }
-    }
-}
-```
-
-By tuning our vector match boosts, we’re effectively able to balance the quality of the text matches between the original text and the products as well as the semantic relationship between the two.
-
 # Evaluation
 
 We’ve run a lot of additional queries up to this point, let’s check back into the evaluation scores to see how we’re shaping up. Recall from the first post that we will be using Mean Recipricol Rank, Mean Average Precision, and Normalized Discounted Cumulative Gain.
 
-| run_name | MRR | MAP | NDCG | run_time |
-| --- | --- | --- | --- | --- |
-| textsearch | 0.261 | 0.113 | 0.170 | 178.5 |
-| textsearch_boosted | 0.318 | 0.149 | 0.218 | 207.4 |
-| vectorsearch | 0.343 | 0.166 | 0.246 | 306.3 |
-| hybrid | 0.326 | 0.163 | 0.239 | 439.5 |
-| hybrid_boosted | 0.349 | 0.175 | 0.256 | 521.3 |
-|  | 10% | 17% | 18% | 151% |
+| run_name                      | MRR   | MAP   | NDCG  | Run Time |
+|-------------------------------|-------|-------|-------|----------|
+| textsearch                    | 0.261 | 0.113 | 0.170 |    178.5 |
+| textsearch_boosted            | 0.318 | 0.149 | 0.218 |    207.4 |
+| vectorsearch                  | 0.331 | 0.159 | 0.237 |    509.6 |
+| vectorsearch_multifield       | 0.241 | 0.097 | 0.156 |    623.0 |
+| vectorsearch_multifield_tuned | 0.255 | 0.106 | 0.168 |    662.4 |
+|                               |  4.1% |  6.7% |  8.8% |   145.7% |
 
-We can see that our tuned hybrid really does give us that “best of both worlds” and the best performance across all three metrics. By tuning our hybrid search we were able to make a 10%-18% gain across all three of our metrics from the tuned text search. It worth noting, however, that we take a 151% hit on the time it takes to run these queries.
+We can see that our single embedding vector search outperforms even the tuned version of our multi-field vector search. This could be that we just haven’t fully tuned that multifield query, but it also could be the that the single embedding is able to capture most of the information into one vector representation.
 
-One of the advantages we highlighted for vector-based search was its ability to handle misspellings and queries without exact text matches, which are common in short text queries like those in our dataset. There is indeed a small subset of 1.5% of our queries that did not return a text based result. However, with the introduction of the vector-based component in our hybrid search approach, we were able to surface relevant results for all of these previously unsuccessful queries. While the quality of these results may not be optimal in every case, the vector-based search ensures that we can now provide the user with at least some potentially relevant products, as opposed to an empty result set. This capability to handle queries with imperfect text matches is a key strength of incorporating vector embeddings into our search system.
+One of the advantages we highlighted for vector-based search was its ability to handle misspellings and queries without exact text matches, which are common in short text queries like those in our dataset. There is indeed a small subset of 1.5% of our queries that did not return a text based result. However, with the introduction of the vector-based search, we were able to surface relevant results for all of these previously unsuccessful queries. While the quality of these results may not be optimal in every case, the vector-based search ensures that we can now provide the user with at least some potentially relevant products, as opposed to an empty result set. This capability to handle queries with imperfect text matches is a key strength of incorporating vector embeddings into our search system.
 
 # Conclusion
 
-In this post, we added the additional capability of vector based search to our search relevance dataset. We were able to run strictly vector-based searches as well as a hybrid based search that we tuned in a similar manner to how we tuned our text search.
+In this post, we experimented with the capability of vector based search to our search relevance dataset. We were able to run single field vector-based searches as well as a multi-field vector based searches that we tuned in a similar manner to how we tuned our text search.
 
 This added capability allowed us to surface better results across our set of queries and even surface results where there weren’t any previously available due to the limitation of text based search.
 
-While vector search and hybrid approaches offer clear advantages in terms of relevance and semantic understanding, it's important to note that these techniques often come with increased computational complexity and indexing costs. The trade-off between performance and relevance should be carefully evaluated based on the specific requirements of the search application.
+While vector search offer clear advantages in terms of relevance and semantic understanding, it's important to note that these techniques often come with increased computational complexity and indexing costs. The trade-off between performance and relevance should be carefully evaluated based on the specific requirements of the search application.
 
-In the next post, we'll take our exploration of hybrid search one step further by exploring an additional ranking method called Reciprocal Rank Fusion.
+In the next post, we'll take our explore how we can combine the benefits of our vector based search back with the powerful text-based search of Elasticsearch.
 
 If you want to dive deeper into the code, the notebooks for all of the work above can be found here:
-* [2-vector-search.ipynb](https://github.com/billyhines/search-relevance/blob/main/2-vector-search.ipynb)
-* [3-hybrid.ipynb](https://github.com/billyhines/search-relevance/blob/main/3-hybrid.ipynb)
+* [2.0-vector-search.ipynb](https://github.com/billyhines/search-relevance/blob/main/2.0-vector-search.ipynb)
+* [2.1-vector-search-multi.ipynb](https://github.com/billyhines/search-relevance/blob/main/2.1-vector-search-multi.ipynb)
