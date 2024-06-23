@@ -16,7 +16,7 @@ def query_elasticsearch_hybrid(
         search_text: The text to search for.
         search_vector: The vector to search with.
         num_results: The maximum number of results to return (default 10).
-        boost_values: A dictionary containing the boost values for title, description, and attributes.
+        boost_values: A dictionary containing the boost values for the fields.
 
     Returns:
         The search results from Elasticsearch.
@@ -27,7 +27,7 @@ def query_elasticsearch_hybrid(
         "title_boost": 1,
         "description_boost": 1,
         "attributes_boost": 1,
-        "vector_boost": 1,
+        "product_text_string_vector_boost": 1,
     }
 
     should_clauses = []
@@ -69,13 +69,46 @@ def query_elasticsearch_hybrid(
         should_clauses.extend(text_match_clauses)
     
     # Vector match clauses:
-    if search_vector is not None:
+    if search_vector is not None and "product_text_string_vector_boost" in boost_values:
         vetor_match_clause = {
                         "knn": {
-                            "field": "product_vector",
+                            "field": "product_text_string_vector",
                             "query_vector": search_vector,
                             "num_candidates": 150,
-                            "boost": boost_values["vector_boost"],
+                            "boost": boost_values["product_text_string_vector_boost"],
+                        }
+                    }
+        should_clauses.append(vetor_match_clause)
+
+    if search_vector is not None and "product_title_vector_boost" in boost_values:
+        vetor_match_clause = {
+                        "knn": {
+                            "field": "product_title_vector",
+                            "query_vector": search_vector,
+                            "num_candidates": 150,
+                            "boost": boost_values["product_title_vector_boost"],
+                        }
+                    }
+        should_clauses.append(vetor_match_clause)
+
+    if search_vector is not None and "product_description_vector_boost" in boost_values:
+        vetor_match_clause = {
+                        "knn": {
+                            "field": "product_description_vector",
+                            "query_vector": search_vector,
+                            "num_candidates": 150,
+                            "boost": boost_values["product_description_vector_boost"],
+                        }
+                    }
+        should_clauses.append(vetor_match_clause)
+
+    if search_vector is not None and "product_attributes_string_vector_boost" in boost_values:
+        vetor_match_clause = {
+                        "knn": {
+                            "field": "product_attributes_string_vector",
+                            "query_vector": search_vector,
+                            "num_candidates": 150,
+                            "boost": boost_values["product_attributes_string_vector_boost"],
                         }
                     }
         should_clauses.append(vetor_match_clause)
@@ -91,3 +124,82 @@ def query_elasticsearch_hybrid(
 
     results = es_client.search(index=index_name, body=query_body)
     return results
+
+
+def query_elasticsearch_rrf(
+    es_client,
+    index_name,
+    search_text=None,
+    search_vector=None,
+    num_results=10,
+    num_query_results=50,
+    k=60,
+    boost_values = None,
+):
+    """Combines a vector search and a text search with RRF.
+
+    Args:
+        es_client: An Elasticsearch client object.
+        index_name: The name of the index to query.
+        search_text: The text to search for.
+        search_vector: The vector to search with.
+        num_results: The maximum number of results to return (default 10).
+        num_results: The maximum number of results to return from each query type (default 50).
+        k: the RRF ranking constant.
+        boost_values: A dictionary containing the boost values for title, description, and attributes.
+
+
+    Returns:
+        The search a dataframe of results from Elasticsearch ranked by RRF.
+    """
+
+    # Default boost values
+    boost_values = boost_values or {
+        "title_boost": 1,
+        "description_boost": 1,
+        "attributes_boost": 1,
+        "vector_boost": 1,
+    }
+
+    # Text search
+    text_results = query_elasticsearch_hybrid(
+        es_client,
+        index_name,
+        search_text=search_text,
+        num_results=num_query_results,
+        boost_values=boost_values,
+        )
+    text_hits = pd.DataFrame(text_results['hits']['hits'])
+
+    # Vector seach
+    vector_results = query_elasticsearch_hybrid(
+        es_client,
+        index_name,
+        search_vector=search_vector,
+        num_results=num_query_results,
+        boost_values=boost_values,
+        )
+    vector_hits = pd.DataFrame(vector_results['hits']['hits'])
+
+
+    # Combine with Recipricol Rank fUsIoN
+
+    if len(text_hits)==0:
+        rrf_results = vector_hits
+        rrf_results['rrf_score'] = 1 / (rrf_results['_score'].rank(ascending=False) + k)
+        rrf_results['product_uid'] = [x['product_uid'] for x in rrf_results['_source']]
+    else:
+
+        text_hits['score'] = 1/ (text_hits['_score'].rank(ascending=False) + k)
+        vector_hits['score'] = 1 / (vector_hits['_score'].rank(ascending=False) + k)
+
+        rrf_results = text_hits.merge(vector_hits, how='outer', left_on='_id', right_on='_id')
+        rrf_results['rrf_score'] = rrf_results['score_x'].fillna(0) + rrf_results['score_y'].fillna(0)
+            
+        rrf_results['source'] = rrf_results['_source_x'].combine_first(rrf_results['_source_y'])
+        rrf_results['product_uid'] = [x['product_uid'] for x in rrf_results['source']]
+
+    rrf_results.sort_values('rrf_score', inplace=True, ascending=False)
+    rrf_results.reset_index(inplace=True, drop=True)
+
+    return rrf_results[:num_results]
