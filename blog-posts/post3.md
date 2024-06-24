@@ -140,7 +140,7 @@ We’ve run a lot of additional queries up to this point, let’s check back int
 | vectorsearch_multifield | 0.241 | 0.097 | 0.156 | 623.0 |
 | vectorsearch_multifield_tuned | 0.255 | 0.106 | 0.168 | 662.4 |
 | hybrid | 0.325 | 0.163 | 0.238 | 662.6 |
-| hybrid_boosted | 0.342 | 0.170 | 0.251 | 716.3 |
+| hybrid_boosted | **0.342** | **0.170** | **0.251** | **716.3** |
 | Increase over Text | 7.7% | 14.1% | 15.5% | 245.4% |
 | Increase over Vector | 3.4% | 6.9% | 6.2% | 40.6% |
 
