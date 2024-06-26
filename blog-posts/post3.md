@@ -157,4 +157,4 @@ While Hybrid approaches offer clear advantages in terms of relevance and semanti
 In the next post, we'll take our exploration of hybrid search one step further by exploring an additional ranking method called Reciprocal Rank Fusion.
 
 If you want to dive deeper into the code, the notebooks for all of the work above can be found here:
-* [3-hybrid.ipynb](https://github.com/billyhines/search-relevance/blob/main/3-hybrid.ipynb)
+* [3-hybrid.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/3-hybrid.ipynb)

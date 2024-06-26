@@ -227,5 +227,5 @@ While vector search offer clear advantages in terms of relevance and semantic un
 In the next post, we'll take our explore how we can combine the benefits of our vector based search back with the powerful text-based search of Elasticsearch.
 
 If you want to dive deeper into the code, the notebooks for all of the work above can be found here:
-* [2.0-vector-search.ipynb](https://github.com/billyhines/search-relevance/blob/main/2.0-vector-search.ipynb)
-* [2.1-vector-search-multi.ipynb](https://github.com/billyhines/search-relevance/blob/main/2.1-vector-search-multi.ipynb)
+* [2.0-vector-search.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/2.0-vector-search.ipynb)
+* [2.1-vector-search-multi.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/2.1-vector-search-multi.ipynb)

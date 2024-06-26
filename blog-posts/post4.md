@@ -164,4 +164,4 @@ Our experiments have yielded promising results. By fine-tuning our initial text 
 As next steps, consider running A/B tests to quantify the real-world impact of these improvements on user satisfaction and business metrics. Additionally, explore optimization techniques to reduce the computational overhead of RRF, potentially making it a more viable option for a broader range of applications.
 
 If you want to dive deeper into the code, the notebooks for all of the work above can be found here:
-* [4-recip-rank-fusion.ipynb](https://github.com/billyhines/search-relevance/blob/main/4-recip-rank-fusion.ipynb)
+* [4-recip-rank-fusion.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/4-recip-rank-fusion.ipynb)

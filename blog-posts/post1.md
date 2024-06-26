@@ -256,5 +256,5 @@ In this initial post we’ve gained some valuable insights into our product sear
 With this foundation, we’ll dive deeper into more sophisticated approaches like vector embeddings and hybrid search methods in the subsequent posts.
 
 If you want to dive deeper into the code, the notebooks for all of the work above can be found here:
-* [0-eda.ipynb](https://github.com/billyhines/search-relevance/blob/main/0-eda.ipynb)
-* [1-text-search.ipynb](https://github.com/billyhines/search-relevance/blob/main/1-text-search.ipynb)
+* [0-eda.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/0-eda.ipynb)
+* [1-text-search.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/1-text-search.ipynb)
