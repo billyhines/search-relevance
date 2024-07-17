@@ -213,3 +213,4 @@ By continually refining our approach and leveraging the power of customized embe
 If you want to dive deeper into the code, the notebooks for all of the work above can be found here:
 * [5-finetune.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/5-finetune.ipynb)
 * [6-finetune-vector-rrf.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/6-finetune-vector-rrf.ipynb)
+* [7-finetine-evaluation.ipynb](https://github.com/billyhines/search-relevance/blob/main/notebooks/7-finetine-evaluation.ipynb)
